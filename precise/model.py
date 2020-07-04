@@ -47,11 +47,10 @@ class ModelParams:
 
 def load_precise_model(model_name: str) -> Any:
     """Loads a Keras model from file, handling custom loss function"""
-    if not model_name.endswith('.net'):
+    if not model_name.endswith('.net') or not model_name.endswith('.h5'):
         print('Warning: Unknown model type, ', model_name)
-
     inject_params(model_name)
-    return load_keras().models.load_model(model_name)
+    return load_keras().models.load_model(model_name, compile = False)
 
 
 def create_model(model_name: Optional[str], params: ModelParams) -> 'Sequential':
@@ -69,9 +68,9 @@ def create_model(model_name: Optional[str], params: ModelParams) -> 'Sequential'
         print('Loading from ' + model_name + '...')
         model = load_precise_model(model_name)
     else:
-        from keras.layers.core import Dense
-        from keras.layers.recurrent import GRU
-        from keras.models import Sequential
+        from tensorflow.keras.layers import Dense
+        from tensorflow.keras.layers import GRU
+        from tensorflow.keras.models import Sequential
 
         model = Sequential()
         model.add(GRU(

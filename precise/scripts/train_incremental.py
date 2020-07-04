@@ -42,7 +42,7 @@ from random import random
 from typing import *
 
 from precise.model import create_model, ModelParams
-from precise.network_runner import Listener, KerasRunner
+from precise.network_runner import Listener, KerasRunner, TfKerasRunner
 from precise.params import pr
 from precise.scripts.train import TrainScript
 from precise.train_data import TrainData
@@ -84,7 +84,7 @@ class TrainIncrementalScript(TrainScript):
         )
         model = create_model(self.args.model, params)
         self.listener = Listener(self.args.model, self.args.chunk_size, runner_cls=KerasRunner)
-        self.listener.runner = KerasRunner(self.args.model)
+        self.listener.runner = TfKerasRunner(self.args.model)
         self.listener.runner.model = model
         self.samples_since_train = 0
 
@@ -108,7 +108,8 @@ class TrainIncrementalScript(TrainScript):
                 validation_data=test_data, callbacks=self.callbacks, initial_epoch=self.epoch
             )
         finally:
-            self.listener.runner.model.save(self.args.model)
+            self.listener.runner.model.save(self.args.model + '.h5') # Save with '.h5' file extension to force format
+            rename(self.args.model + '.h5', self.args.model) # Rename with original
 
     def train_on_audio(self, fn: str):
         """Run through a single audio file"""

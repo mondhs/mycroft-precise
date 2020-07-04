@@ -55,7 +55,13 @@ Train a new model on a dataset
 ...
 """
 from fitipy import Fitipy
-from keras.callbacks import LambdaCallback
+from tensorflow.keras.callbacks import LambdaCallback
+import tensorflow as tf
+from tensorflow.python.framework.ops import disable_eager_execution
+disable_eager_execution()
+print(tf.__version__)
+print("Eager execution: {}".format(tf.executing_eagerly()))
+
 from os.path import splitext, isfile
 from prettyparse import Usage
 from typing import Any, Tuple
@@ -87,8 +93,8 @@ class TrainScript(BaseScript):
         self.model = create_model(args.model, params)
         self.train, self.test = self.load_data(self.args)
 
-        from keras.callbacks import ModelCheckpoint, TensorBoard
-        checkpoint = ModelCheckpoint(args.model, monitor=args.metric_monitor,
+        from tensorflow.keras.callbacks import ModelCheckpoint, TensorBoard
+        checkpoint = ModelCheckpoint(filepath=args.model, monitor=args.metric_monitor,
                                      save_best_only=args.save_best)
         epoch_fiti = Fitipy(splitext(args.model)[0] + '.epoch')
         self.epoch = epoch_fiti.read().read(0, int)
@@ -106,9 +112,10 @@ class TrainScript(BaseScript):
             self.hash_to_ind = {}
 
         self.callbacks = [
-            checkpoint, TensorBoard(
+          checkpoint,TensorBoard(
                 log_dir=self.model_base + '.logs',
-            ), LambdaCallback(on_epoch_end=on_epoch_end)
+            ),
+          LambdaCallback(on_epoch_end=on_epoch_end)
         ]
 
     @staticmethod
@@ -162,7 +169,9 @@ class TrainScript(BaseScript):
         self.model.fit(
             train_inputs, train_outputs, self.args.batch_size,
             self.epoch + self.args.epochs, validation_data=self.test,
-            initial_epoch=self.epoch, callbacks=self.callbacks
+            initial_epoch=self.epoch, callbacks=self.callbacks,
+            use_multiprocessing=True, validation_freq=5,
+            verbose=1
         )
 
 

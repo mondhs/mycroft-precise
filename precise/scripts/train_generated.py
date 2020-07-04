@@ -236,7 +236,7 @@ class TrainGeneratedScript(BaseScript):
                 callbacks=self.callbacks, initial_epoch=self.epoch
             )
         finally:
-            self.model.save(self.args.model)
+            self.model.save(self.args.model, save_format='h5')
             save_params(self.args.model)
 
 
